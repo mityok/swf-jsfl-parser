@@ -29,8 +29,9 @@ export const stringify = (obj,level=999) => {
 		const result = [];
 		
 		for(const key in obj){
+			const item = obj[key];
 			try{
-				result.push(`"${key}":${toString(obj[key])}`)
+				result.push(`"${key}":${toString(item)}`)
 			}catch(e){
 				trace('err: '+e)
 			}
@@ -68,35 +69,4 @@ export const hexToRgba = hex => {
     	b = bigint & 255;
 	}
     return r + "," + g + "," + b+','+a;
-}
-
-export const base64Encode = str => {
-  const CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
-  let out = '',
-    i = 0,
-    c1, c2, c3
-  const len = str.length
-  while (i < len) {
-    c1 = str.charCodeAt(i++) & 0xff
-    if (i == len) {
-      out += CHARS.charAt(c1 >> 2)
-      out += CHARS.charAt((c1 & 0x3) << 4)
-      out += '=='
-      break
-    }
-    c2 = str.charCodeAt(i++)
-    if (i == len) {
-      out += CHARS.charAt(c1 >> 2)
-      out += CHARS.charAt(((c1 & 0x3) << 4) | ((c2 & 0xF0) >> 4))
-      out += CHARS.charAt((c2 & 0xF) << 2)
-      out += '='
-      break
-    }
-    c3 = str.charCodeAt(i++)
-    out += CHARS.charAt(c1 >> 2)
-    out += CHARS.charAt(((c1 & 0x3) << 4) | ((c2 & 0xF0) >> 4))
-    out += CHARS.charAt(((c2 & 0xF) << 2) | ((c3 & 0xC0) >> 6))
-    out += CHARS.charAt(c3 & 0x3F)
-  }
-  return out
 }

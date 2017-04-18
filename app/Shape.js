@@ -3,14 +3,12 @@ import {
     parse,
     log,
     trace,
-    hexToRgba,
-    base64Encode
+    hexToRgba
 } from './Utils'
 
 class Shape {
     constructor(element) {
-        //not indicative, could have multiple countours, each one with color of it's own
-        //const fill = this.parseFill(element.getCustomFill())
+        trace('id',element.id)
         let tEdges = element.edges;
         let tVertices = element.vertices;
         let tContours = element.contours;
@@ -31,11 +29,16 @@ class Shape {
         for (let j = 0; j < list.length; j++) {
             this.checkDirection(list[j].shapes);
         }
-        log('list3 - ' + stringify(list))
+        //log('list3 - ' + stringify(list))
+        this.svgPathArray = []
         for (let k = 0; k < list.length; k++) {
             const svgPathData = this.prepareSvgPath(list[k].shapes);
-            trace('svg path data '+stringify(svgPathData))
+            //trace('svg path data '+stringify(svgPathData))
+            this.svgPathArray.push(svgPathData)
         }
+    }
+    getData(){
+        return this.svgPathArray
     }
     createGroups(element, cubicSegmentIndices) {
         const list = []
@@ -161,8 +164,12 @@ class Shape {
             let strokeCompare = null;
             while (id != iStart) {
             	const edge = he.getEdge()
-                const index = edge.cubicSegmentIndex;
+                log(`while ${edge}`)
+                let index=-1
+                index = edge.cubicSegmentIndex;
+                log(`while1 ${index}`)
                 const stroke = edge.stroke;
+
                 const point = {
                 	start:{
                 		x:edge.getControl(0).x,
@@ -175,7 +182,7 @@ class Shape {
                 	cubicSegmentIndex:index,
                 	stroke:stroke
                 }
-                //log(`${edge.getControl(0).x}:${edge.getControl(0).y} - ${edge.getControl(2).x}:${edge.getControl(2).y}  - ${point.x}:${point.y}- ${stroke.style}`)
+                //log(`${edge.getControl(0).x}:${edge.getControl(0).y} - ${edge.getControl(2).x}:${edge.getControl(2).y} - ${stroke.style}`)
                 if(!strokeCompare){
                 	strokeCompare = stringify(stroke)
                 }else{
@@ -191,6 +198,8 @@ class Shape {
                 //log(`${i} => ${index} ${stringify(stroke)}`)
                 he = he.getNext();
                 id = he.id;
+                //log(`${i} => ${id} ${stringify(he)} - ${iStart}`)
+
                 bezierObj.points.push(point)
                 if (!bezierObj.bezierList.includes(index)) {
                     bezierObj.bezierList.push(index);
@@ -199,8 +208,6 @@ class Shape {
             bezierObj.stroke = strokeData;
             bezierObj.bezierList.sort((a, b) => a - b);
             bezierObj.contour = i;
-            bezierObj.orientation = contour.orientation;
-            bezierObj.interior = contour.interior;
             bezierObj.id = `#${bezierObj.bezierList.join('')}`;
             bezierObj.fill = contour.fill;
             const inArr = contourList.find(obj => this.compareContours(obj, bezierObj));
@@ -235,20 +242,10 @@ class Shape {
         	return acc
         }, {x:0,y:0})
         
-        //log(stringify(p1) + ' - ' + stringify(p2))
+        log(stringify(p1) + ' - ' + stringify(p2))
         return (p1.x === p2.x && p1.y == p2.y)
     }
 
-    parseFill(fill) {
-        trace(`${stringify(fill)}`);
-        trace(hexToRgba(fill.color));
-        if (fill.style === 'solid') {
-            return {
-                fill: fill.color
-            }
-        }
-        //trace(`${fill.style} - ${fill.colorArray} - ${fill.posArray} - ${fill.linearRGB} - ${fill.focalPoint} - ${fill.overflow}`);
-    }
 
     parseShape(elem, cubicIndices) {
         for (let m = 0; m < cubicIndices.length; m++) {
